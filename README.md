@@ -50,13 +50,7 @@ npm run dev
 ```
 The frontend will be available at: [http://localhost:5173]
 
-## 👨‍💻 Contributors
 
-| Name            | GitHub Profile                                       |
-| --------------- | ---------------------------------------------------- |
-| Dhruv S Shah    | [@dhruv](https://github.com/S-Dhruv)                 |
-| Akash Garine    | [@akash](https://github.com/akashgarine)             |
-| Akhil Achewad   | [@akhil](https://github.com/achewadakhil)            |  
 
 
 ## 📬 Feedback
