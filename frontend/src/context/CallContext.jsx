@@ -131,6 +131,7 @@ export const CallProvider = ({ children }) => {
     };
 
     pc.ontrack = (event) => {
+      console.log("Remote track received from:", remoteUserId, event.streams);
       if (event.streams && event.streams[0]) {
         setRemoteStreams((prev) => ({
           ...prev,
@@ -236,3 +237,5 @@ export const CallProvider = ({ children }) => {
 };
 
 export const useCall = () => useContext(CallContext);
+
+
