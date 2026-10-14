@@ -1,9 +1,9 @@
-﻿import React, { useState } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "../lib/utils";
+import io from "socket.io-client";
 import { useCall } from "../context/CallContext";
-import { useChat } from "../context/ChatContext";
 
 // MUI Icons
 import HomeIcon from "@mui/icons-material/Home";
@@ -19,16 +19,58 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import PersonIcon from "@mui/icons-material/Person";
 
+const socket = io.connect("https://devsync-backend-tbv2.onrender.com/");
+
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [unreadChat, setUnreadChat] = useState(
+    parseInt(localStorage.getItem("chat_unread") || "0", 10)
+  );
+
   const navigate = useNavigate();
   const location = useLocation();
-
-  // Dynamic context states for notifications
   const { isInCall } = useCall() || {};
-  const { unreadCount } = useChat() || {};
 
   const toggleSidebar = () => setIsOpen(!isOpen);
+
+  // Background listener for incoming chat messages to trigger red dot
+  useEffect(() => {
+    const roomCode = localStorage.getItem("roomCode");
+    const currentUser = localStorage.getItem("userId") || localStorage.getItem("userName");
+
+    if (roomCode) {
+      socket.emit("join-room", { roomCode, userId: currentUser });
+    }
+
+    const handleIncoming = (data) => {
+      // If user is not currently inside /forums and message is not from themselves, show notification dot
+      if (window.location.pathname !== "/forums" && data.client !== currentUser) {
+        setUnreadChat((prev) => {
+          const next = prev + 1;
+          localStorage.setItem("chat_unread", next.toString());
+          return next;
+        });
+      }
+    };
+
+    socket.on("text-message", handleIncoming);
+
+    const handleReadEvent = () => setUnreadChat(0);
+    window.addEventListener("chat-read", handleReadEvent);
+
+    return () => {
+      socket.off("text-message", handleIncoming);
+      window.removeEventListener("chat-read", handleReadEvent);
+    };
+  }, []);
+
+  // Clear unread badge when navigating to /forums
+  useEffect(() => {
+    if (location.pathname === "/forums") {
+      setUnreadChat(0);
+      localStorage.setItem("chat_unread", "0");
+    }
+  }, [location.pathname]);
 
   const handleLogOut = () => {
     localStorage.removeItem("isLogin");
@@ -42,18 +84,17 @@ const Sidebar = () => {
     { name: "Board", link: "/editor", icon: <EditRoundedIcon /> },
     { name: "Collab", link: "/collab", icon: <CodeIcon /> },
     { name: "Quiz", link: "/test", icon: <QuizIcon /> },
-    { 
-      name: "Chat Room", 
-      link: "/forums", 
+    {
+      name: "Chat Room",
+      link: "/forums",
       icon: <ForumIcon />,
-      badge: unreadCount > 0 ? (unreadCount > 9 ? "9+" : unreadCount) : null,
-      badgeColor: "bg-red-500"
+      badge: unreadChat > 0 ? (unreadChat > 9 ? "9+" : unreadChat) : null,
     },
-    { 
-      name: "Video Call", 
-      link: "/videoCall", 
+    {
+      name: "Video Call",
+      link: "/videoCall",
       icon: <VideoChatRoundedIcon />,
-      indicator: isInCall ? "bg-emerald-500 animate-pulse" : null
+      indicator: isInCall ? "bg-emerald-500 animate-pulse" : null,
     },
     { name: "Test Dashboard", link: "/testDashboard", icon: <DashboardCustomizeRoundedIcon /> },
     { name: "Test Setup", link: "/testSetup", icon: <BuildRoundedIcon /> },
@@ -72,21 +113,17 @@ const Sidebar = () => {
         }}
         className="fixed top-0 left-0 h-screen bg-[#1e1e1e] text-white z-40 flex flex-col shadow-lg select-none"
       >
-        {/* Sidebar Toggle */}
+        {/* Toggle */}
         <div className="flex justify-center items-center p-2 border-b border-gray-800">
           <button
             onClick={toggleSidebar}
             className="p-1 rounded-full hover:bg-gray-700 transition-colors"
           >
-            {isOpen ? (
-              <ChevronLeftIcon fontSize="small" />
-            ) : (
-              <ChevronRightIcon fontSize="small" />
-            )}
+            {isOpen ? <ChevronLeftIcon fontSize="small" /> : <ChevronRightIcon fontSize="small" />}
           </button>
         </div>
 
-        {/* Navigation Menu */}
+        {/* Navigation Items */}
         <div className="flex-1 overflow-y-auto py-4">
           <ul className="space-y-6">
             {navItems.map((item, index) => {
@@ -102,23 +139,19 @@ const Sidebar = () => {
                     className={cn(
                       "flex items-center transition-colors relative",
                       isOpen ? "px-4" : "justify-center",
-                      isActive
-                        ? "text-purple-400 font-semibold"
-                        : "text-gray-400 hover:text-white"
+                      isActive ? "text-purple-400 font-semibold" : "text-gray-400 hover:text-white"
                     )}
                     title={!isOpen ? item.name : ""}
                   >
                     <div className="relative flex items-center justify-center">
                       <span className="text-xl">{item.icon}</span>
 
-                      {/* Notification Badge on Collapsed Icon */}
+                      {/* Red Dot / Badge on Collapsed Sidebar */}
                       {!isOpen && item.badge && (
-                        <span className="absolute -top-1.5 -right-2 px-1 min-w-[16px] h-4 text-[10px] font-bold text-white bg-red-500 rounded-full flex items-center justify-center shadow">
-                          {item.badge}
-                        </span>
+                        <span className="absolute -top-1 -right-1.5 w-3 h-3 bg-red-500 rounded-full ring-2 ring-[#1e1e1e]" />
                       )}
 
-                      {/* Active Call Dot on Collapsed Icon */}
+                      {/* Active Video Call Indicator on Collapsed Sidebar */}
                       {!isOpen && item.indicator && (
                         <span className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full ${item.indicator} ring-2 ring-[#1e1e1e]`} />
                       )}
@@ -128,14 +161,14 @@ const Sidebar = () => {
                       <div className="flex items-center justify-between w-full ml-3">
                         <span className="text-sm truncate">{item.name}</span>
 
-                        {/* Unread Badge on Expanded Sidebar */}
+                        {/* Red Badge with Number on Expanded Sidebar */}
                         {item.badge && (
-                          <span className="px-2 py-0.5 text-xs font-bold text-white bg-red-500 rounded-full shadow">
+                          <span className="px-1.5 py-0.2 bg-red-500 text-white text-xs font-bold rounded-full shadow">
                             {item.badge}
                           </span>
                         )}
 
-                        {/* Active Call Dot on Expanded Sidebar */}
+                        {/* Active Call Live Tag on Expanded Sidebar */}
                         {item.indicator && (
                           <span className="flex items-center gap-1.5 text-xs text-emerald-400 font-mono">
                             <span className={`w-2 h-2 rounded-full ${item.indicator}`} />
@@ -183,7 +216,7 @@ const Sidebar = () => {
         </div>
       </motion.div>
 
-      {/* Main Content Padding */}
+      {/* Main Content Layout */}
       <div
         className="min-h-screen transition-all duration-300"
         style={{ paddingLeft: isOpen ? "200px" : "60px" }}

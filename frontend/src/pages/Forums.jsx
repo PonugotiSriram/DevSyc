@@ -5,7 +5,6 @@ import {
   MessageSquare,
   Send,
   LogOut,
-  Users,
   ArrowDown,
   Clock,
 } from "lucide-react";
@@ -19,9 +18,7 @@ const Forums = () => {
   const [user, setUser] = useState(null);
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([]);
-  const [leave, setLeave] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
-  const [onlineUsers, setOnlineUsers] = useState(1);
   const messagesEndRef = useRef(null);
   const chatContainerRef = useRef(null);
   const nav = useNavigate();
@@ -39,6 +36,10 @@ const Forums = () => {
     setUser(client);
     socket.emit("join-room", { roomCode: code, userId: client });
 
+    // Clear unread notifications when entering chat
+    localStorage.setItem("chat_unread", "0");
+    window.dispatchEvent(new Event("chat-read"));
+
     const savedChat = localStorage.getItem(`chat_${code}`);
     if (savedChat) {
       try {
@@ -48,22 +49,8 @@ const Forums = () => {
       }
     }
 
-    socket.on("user-count-update", (count) => {
-      setOnlineUsers(count);
-    });
-
     const handleReceiveMessage = (payload) => {
       setChat((prev) => {
-        if (
-          prev.some(
-            (msg) =>
-              msg.message === payload.message &&
-              msg.client === payload.client &&
-              Math.abs(new Date(msg.timestamp) - new Date(payload.timestamp || Date.now())) < 1000
-          )
-        ) {
-          return prev;
-        }
         const updatedChat = [
           ...prev,
           { ...payload, timestamp: payload.timestamp || new Date().toISOString() },
@@ -76,24 +63,9 @@ const Forums = () => {
     socket.on("text-message", handleReceiveMessage);
 
     return () => {
-      socket.off("user-count-update");
       socket.off("text-message", handleReceiveMessage);
     };
   }, [code, client, nav]);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!chatContainerRef.current) return;
-      const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
-      setShowScrollButton(scrollHeight - scrollTop - clientHeight > 100);
-    };
-
-    const container = chatContainerRef.current;
-    if (container) {
-      container.addEventListener("scroll", handleScroll);
-      return () => container.removeEventListener("scroll", handleScroll);
-    }
-  }, []);
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -102,10 +74,7 @@ const Forums = () => {
   }, [chat]);
 
   const handleSendMessage = (e) => {
-    if (e && typeof e.preventDefault === "function") {
-      e.preventDefault();
-    }
-
+    e.preventDefault();
     const trimmed = message.trim();
     if (!trimmed || !roomCode) return;
 
@@ -121,17 +90,7 @@ const Forums = () => {
   const leaveRoom = () => {
     socket.emit("leave-room", { roomCode: code, userId: client });
     localStorage.removeItem("roomCode");
-    setRoomCode(null);
-    localStorage.setItem("leave", "true");
-    setTimeout(() => {
-      nav("/");
-    }, 500);
-  };
-
-  const scrollToBottom = () => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
+    nav("/");
   };
 
   const formatTime = (timestamp) => {
@@ -142,23 +101,6 @@ const Forums = () => {
       minute: "2-digit",
     });
   };
-
-  const groupedMessages = chat.reduce((groups, msg, index) => {
-    const prevMessage = chat[index - 1];
-    const isSameSender = prevMessage && prevMessage.client === msg.client;
-
-    if (isSameSender) {
-      groups[groups.length - 1].messages.push(msg);
-    } else {
-      groups.push({
-        client: msg.client,
-        isCurrentUser: msg.client === user,
-        messages: [msg],
-      });
-    }
-
-    return groups;
-  }, []);
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-b from-gray-900 to-black text-white">
@@ -172,7 +114,7 @@ const Forums = () => {
           </div>
           <div>
             <h1 className="text-xl font-bold text-white">Room Chat</h1>
-            <div className="flex items-center text-xs text-gray-300">
+            <div className="text-xs text-gray-300">
               <span>Room: {roomCode}</span>
             </div>
           </div>
@@ -191,59 +133,41 @@ const Forums = () => {
         ref={chatContainerRef}
         className="flex-1 overflow-y-auto p-4 space-y-4"
       >
-        {groupedMessages.length === 0 ? (
+        {chat.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-500 space-y-2">
             <MessageSquare className="h-12 w-12 text-gray-600" />
             <p className="text-sm">No messages yet. Start the conversation!</p>
           </div>
         ) : (
-          groupedMessages.map((group, groupIndex) => (
-            <div
-              key={groupIndex}
-              className={`flex flex-col ${
-                group.isCurrentUser ? "items-end" : "items-start"
-              }`}
-            >
-              <span className="text-xs text-gray-400 mb-1 px-1">
-                {group.isCurrentUser ? "You" : group.client}
-              </span>
-              <div className="space-y-1 max-w-[70%]">
-                {group.messages.map((msg, msgIndex) => (
-                  <div
-                    key={msgIndex}
-                    className={`rounded-2xl px-4 py-2.5 text-sm shadow-md break-words ${
-                      group.isCurrentUser
-                        ? "bg-blue-600 text-white rounded-tr-none"
-                        : "bg-gray-800 text-gray-200 border border-gray-700 rounded-tl-none"
-                    }`}
-                  >
-                    <p>{msg.message}</p>
-                    <div
-                      className={`text-[10px] mt-1 flex items-center ${
-                        group.isCurrentUser ? "text-blue-200 justify-end" : "text-gray-400 justify-start"
-                      }`}
-                    >
-                      <Clock className="h-3 w-3 mr-1 inline" />
-                      {formatTime(msg.timestamp)}
-                    </div>
+          chat.map((msg, idx) => {
+            const isMe = msg.client === user;
+            return (
+              <div
+                key={idx}
+                className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}
+              >
+                <span className="text-xs text-gray-400 mb-1 px-1">
+                  {isMe ? "You" : msg.client}
+                </span>
+                <div
+                  className={`rounded-2xl px-4 py-2.5 text-sm shadow-md max-w-[70%] break-words ${
+                    isMe
+                      ? "bg-blue-600 text-white rounded-tr-none"
+                      : "bg-gray-800 text-gray-200 border border-gray-700 rounded-tl-none"
+                  }`}
+                >
+                  <p>{msg.message}</p>
+                  <div className={`text-[10px] mt-1 flex items-center ${isMe ? "text-blue-200 justify-end" : "text-gray-400 justify-start"}`}>
+                    <Clock className="h-3 w-3 mr-1 inline" />
+                    {formatTime(msg.timestamp)}
                   </div>
-                ))}
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
         <div ref={messagesEndRef} />
       </div>
-
-      {/* Scroll to bottom button */}
-      {showScrollButton && (
-        <button
-          onClick={scrollToBottom}
-          className="fixed bottom-20 right-6 bg-purple-600 hover:bg-purple-700 text-white p-2.5 rounded-full shadow-lg transition-all"
-        >
-          <ArrowDown className="h-5 w-5" />
-        </button>
-      )}
 
       {/* Message Input Bar */}
       <div className="bg-gray-800/90 border-t border-gray-700 p-4">
