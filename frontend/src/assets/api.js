@@ -1,11 +1,11 @@
-import axios from "axios";
+﻿import axios from "axios";
 
 export const executeCode = async (language, sourceCode) => {
   const lang = (language || "java").toLowerCase().trim();
   const code = sourceCode || "";
 
   try {
-    const response = await axios.post("http://localhost:5000/api/execute", {
+    const response = await axios.post("https://devsync-backend-tbv2.onrender.com/api/execute", {
       language: lang,
       sourceCode: code,
       files: [{ content: code }],
@@ -25,3 +25,4 @@ export const executeCode = async (language, sourceCode) => {
     };
   }
 };
+

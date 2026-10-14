@@ -1,8 +1,8 @@
-import { create } from "zustand";
+﻿import { create } from "zustand";
 import { nanoid } from "nanoid";
 import axios from "axios";
-const BASE = "http://localhost:5000/";
-// const BASE = "http://localhost:5000/"
+const BASE = "https://devsync-backend-tbv2.onrender.com/";
+// const BASE = "https://devsync-backend-tbv2.onrender.com/"
 const roomStore = create((set) => ({
   room: null,
   roomCode: null,
@@ -69,3 +69,4 @@ const roomStore = create((set) => ({
 }));
 
 export default roomStore;
+

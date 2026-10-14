@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import DashboardCustomizeRoundedIcon from "@mui/icons-material/DashboardCustomizeRounded";
@@ -33,7 +33,7 @@ export default function TestDashboard() {
       }
       try {
         const res = await axios.get(
-          `http://localhost:5000/results?userId=${userId}&roomCode=${roomCode}`
+          `https://devsync-backend-tbv2.onrender.com/results?userId=${userId}&roomCode=${roomCode}`
         );
         setResults(res.data);
       } catch (err) {
@@ -71,7 +71,7 @@ export default function TestDashboard() {
         {/* Loading */}
         {loading && (
           <div className="flex items-center justify-center py-24">
-            <p className="text-slate-400 text-lg animate-pulse">Loading results…</p>
+            <p className="text-slate-400 text-lg animate-pulse">Loading resultsâ€¦</p>
           </div>
         )}
 
@@ -179,3 +179,4 @@ export default function TestDashboard() {
     </main>
   );
 }
+

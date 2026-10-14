@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { RoomEntry } from "../components/Room-entry";
 import { QuizUpload } from "../components/Quiz-upload";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -97,7 +97,7 @@ export function QuizRenderer({ roomCode: roomCodeProp, userId }) {
     async function fetchQuiz() {
       try {
         const response = await axios.post(
-          "http://localhost:5000/api/get-quiz",
+          "https://devsync-backend-tbv2.onrender.com/api/get-quiz",
           { roomCode }
         );
         setQuizData(response.data.quizData);
@@ -161,7 +161,7 @@ export function QuizRenderer({ roomCode: roomCodeProp, userId }) {
 
   const saveResults = async () => {
     try {
-      await axios.post(`http://localhost:5000/results`, {
+      await axios.post(`https://devsync-backend-tbv2.onrender.com/results`, {
         userId,
         roomCode,
         score,
@@ -308,3 +308,4 @@ export function QuizRenderer({ roomCode: roomCodeProp, userId }) {
     </div>
   );
 }
+

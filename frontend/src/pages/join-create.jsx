@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+﻿import React, { useEffect, useState, useMemo } from "react";
 import io from "socket.io-client";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -19,7 +19,7 @@ import axios from "axios";
 
 // --- Socket.IO Connection ---
 // Ensure the server URL is correct
-const socket = io.connect("http://localhost:5000");
+const socket = io.connect("https://devsync-backend-tbv2.onrender.com/");
 
 // --- Interactive Pomodoro Timer Component ---
 const PomodoroCircle = ({ time, duration, isRunning, onToggle }) => {
@@ -181,7 +181,7 @@ const JoinCreate = () => {
       return toast.warn("Please enter a room code and email.");
     try {
       const res = await axios.post(
-        "http://localhost:5000/send-code",
+        "https://devsync-backend-tbv2.onrender.com/send-code",
         { roomCode, email }
       );
       toast.success(res.data.message || "Email sent successfully!");
@@ -240,7 +240,7 @@ const JoinCreate = () => {
           {/* Left Column: Stats & Pomodoro */}
           <div className="lg:col-span-1 bg-slate-800/50 border border-slate-700 p-6 rounded-2xl flex flex-col gap-6">
             <h3 className="text-xl font-bold text-purple-400 text-center">
-              📊 Room Dashboard
+              ðŸ“Š Room Dashboard
             </h3>
             <div className="flex flex-col items-center">
               <PomodoroCircle
@@ -368,3 +368,4 @@ const JoinCreate = () => {
 };
 
 export default JoinCreate;
+

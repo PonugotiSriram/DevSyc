@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-// ── SVG Icons ─────────────────────────────────────────────────────────────────
+// â”€â”€ SVG Icons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const UploadIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -15,7 +15,7 @@ const AiIcon = () => (
   </svg>
 );
 
-// ── Validate manually-entered quiz JSON ────────────────────────────────────────
+// â”€â”€ Validate manually-entered quiz JSON â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function validateQuizData(data) {
   if (!Array.isArray(data)) throw new Error("Quiz data must be an array.");
   data.forEach((q) => {
@@ -30,7 +30,7 @@ function validateQuizData(data) {
   });
 }
 
-// ── Main component ─────────────────────────────────────────────────────────────
+// â”€â”€ Main component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export function QuizUpload({ onQuizUpload, roomCode }) {
   const nav = useNavigate();
 
@@ -49,7 +49,7 @@ export function QuizUpload({ onQuizUpload, roomCode }) {
   const [genError, setGenError] = useState("");
   const [genStatus, setGenStatus] = useState("");
 
-  // ── Manual upload handlers ──────────────────────────────────────────────────
+  // â”€â”€ Manual upload handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -73,7 +73,7 @@ export function QuizUpload({ onQuizUpload, roomCode }) {
       setUploadError("");
       const data = JSON.parse(jsonData);
       validateQuizData(data);
-      const res = await fetch("http://localhost:5000/api/save-quiz", {
+      const res = await fetch("https://devsync-backend-tbv2.onrender.com/api/save-quiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ roomCode, quizData: data }),
@@ -88,7 +88,7 @@ export function QuizUpload({ onQuizUpload, roomCode }) {
     }
   };
 
-  // ── AI generation handler ───────────────────────────────────────────────────
+  // â”€â”€ AI generation handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleGenerate = async () => {
     if (!subjects.trim()) { setGenError("Please enter at least one subject."); return; }
     if (!roomCode) { setGenError("No room code found. Please go back and join a room first."); return; }
@@ -96,16 +96,16 @@ export function QuizUpload({ onQuizUpload, roomCode }) {
     try {
       setIsGenerating(true);
       setGenError("");
-      setGenStatus("Generating quiz with AI… this may take a few seconds.");
+      setGenStatus("Generating quiz with AIâ€¦ this may take a few seconds.");
 
-      const res = await axios.post("http://localhost:5000/api/init-quiz", {
+      const res = await axios.post("https://devsync-backend-tbv2.onrender.com/api/init-quiz", {
         subjects: subjects.trim(),
         difficulty,
         roomCode,
       });
 
       if (res.data?.success) {
-        setGenStatus("Quiz generated successfully! Redirecting…");
+        setGenStatus("Quiz generated successfully! Redirectingâ€¦");
         localStorage.setItem("roomCode", roomCode); // persist for refresh safety
         onQuizUpload();
         setTimeout(() => nav("/test", { state: { roomCode } }), 800);
@@ -125,7 +125,7 @@ export function QuizUpload({ onQuizUpload, roomCode }) {
     }
   };
 
-  // ── Render ──────────────────────────────────────────────────────────────────
+  // â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   return (
     <div className="w-full max-w-2xl mx-auto bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-6">
       <h2 className="text-2xl font-bold text-white text-center mb-2">Configure Quiz</h2>
@@ -154,7 +154,7 @@ export function QuizUpload({ onQuizUpload, roomCode }) {
         ))}
       </div>
 
-      {/* ── AI Generate Tab ── */}
+      {/* â”€â”€ AI Generate Tab â”€â”€ */}
       {tab === "ai" && (
         <div className="space-y-4">
           <div>
@@ -188,12 +188,12 @@ export function QuizUpload({ onQuizUpload, roomCode }) {
             disabled={isGenerating}
             className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-600 disabled:cursor-wait text-white font-bold rounded-lg transition-all"
           >
-            {isGenerating ? "Generating…" : "Generate Quiz with AI"}
+            {isGenerating ? "Generatingâ€¦" : "Generate Quiz with AI"}
           </button>
         </div>
       )}
 
-      {/* ── Manual Upload Tab ── */}
+      {/* â”€â”€ Manual Upload Tab â”€â”€ */}
       {tab === "upload" && (
         <div className="space-y-4">
           <label
@@ -212,7 +212,7 @@ export function QuizUpload({ onQuizUpload, roomCode }) {
           />
 
           <textarea
-            placeholder="Or paste your quiz JSON here…"
+            placeholder="Or paste your quiz JSON hereâ€¦"
             rows={10}
             value={jsonData}
             onChange={(e) => { setJsonData(e.target.value); setUploadError(""); }}
@@ -237,10 +237,11 @@ export function QuizUpload({ onQuizUpload, roomCode }) {
             disabled={!jsonData.trim() || isUploading}
             className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-all"
           >
-            {isUploading ? "Uploading…" : "Start Quiz with this Data"}
+            {isUploading ? "Uploadingâ€¦" : "Start Quiz with this Data"}
           </button>
         </div>
       )}
     </div>
   );
 }
+

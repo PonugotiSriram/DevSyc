@@ -1,8 +1,8 @@
-import { create } from "zustand";
+﻿import { create } from "zustand";
 import axios from "axios";
 import { nanoid } from "nanoid";
-const BASE = "http://localhost:5000/";
-// const BASE = "http://localhost:5000/";
+const BASE = "https://devsync-backend-tbv2.onrender.com/";
+// const BASE = "https://devsync-backend-tbv2.onrender.com/";
 export const userStore = create((set) => ({
   user: null,
   setUser: (user) => set({ user }),
@@ -33,3 +33,4 @@ export const userStore = create((set) => ({
     }
   },
 }));
+

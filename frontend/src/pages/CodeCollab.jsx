@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback } from "react";
+﻿import React, { useRef, useState, useEffect, useCallback } from "react";
 import { debounce } from "lodash";
 import { Editor } from "@monaco-editor/react";
 import { ToastContainer, toast } from "react-toastify";
@@ -36,8 +36,8 @@ const runCode = async () => {
   }
 };
 
-// const socket = io.connect("http://localhost:5000");
-const socket = io.connect("http://localhost:5000");
+// const socket = io.connect("https://devsync-backend-tbv2.onrender.com/");
+const socket = io.connect("https://devsync-backend-tbv2.onrender.com/");
 // --- Main Component ---
 const CodeCollab = () => {
   const nav = useNavigate();
@@ -318,3 +318,4 @@ const CodeCollab = () => {
 };
 
 export default CodeCollab;
+

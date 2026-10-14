@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+﻿import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 import {
@@ -11,8 +11,8 @@ import {
 } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-const socket = io.connect("http://localhost:5000");
-// const  socket = io.connect("http://localhost:5000");
+const socket = io.connect("https://devsync-backend-tbv2.onrender.com/");
+// const  socket = io.connect("https://devsync-backend-tbv2.onrender.com/");
 
 const Forums = () => {
   const [roomCode, setRoomCode] = useState(null);
@@ -171,7 +171,7 @@ const Forums = () => {
                 <Users className="h-3 w-3 mr-1" />
                 {onlineUsers} online
               </span> */}
-              {/* <span className="mx-2">•</span> */}
+              {/* <span className="mx-2">â€¢</span> */}
               <span>Room: {roomCode}</span>
             </div>
           </div>
@@ -311,3 +311,4 @@ const Forums = () => {
 };
 
 export default Forums;
+

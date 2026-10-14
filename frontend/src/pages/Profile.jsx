@@ -53,7 +53,7 @@ const Profile = () => {
     const fetchResults = async () => {
       try {
         const uid = user?.uid || localStorage.getItem("userId") || user?.username;
-        const res = await axios.get("http://localhost:5000/results");
+        const res = await axios.get("https://devsync-backend-tbv2.onrender.com/results");
         if (res.data && Array.isArray(res.data)) {
           const userResults = res.data.filter(r => !uid || r.userId === uid || r.roomCode === activeRoom);
           if (userResults.length > 0) {
@@ -289,3 +289,4 @@ const Profile = () => {
 };
 
 export default Profile;
+

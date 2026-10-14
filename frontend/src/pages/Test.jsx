@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { RoomEntry } from "../components/Room-entry";
 import { QuizUpload } from "../components/Quiz-upload";
 import { QuizRenderer } from "../components/Quiz-render";
@@ -138,7 +138,7 @@ export default function Test() {
       }
 
       const response = await fetch(
-        "http://localhost:5000/api/init-quiz",
+        "https://devsync-backend-tbv2.onrender.com/api/init-quiz",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -319,3 +319,4 @@ export default function Test() {
     </main>
   );
 }
+

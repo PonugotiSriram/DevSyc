@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+﻿import React, { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 
-const SERVER_URL = "http://localhost:5000";
+const SERVER_URL = "https://devsync-backend-tbv2.onrender.com/";
 const roomCode = localStorage.getItem("roomCode");
 const userId = localStorage.getItem("userId");
 
@@ -28,7 +28,7 @@ const VideoCall = () => {
     });
 
     socketRef.current.on("connect", async () => {
-      console.log("✅ Connected to socket:", socketRef.current.id);
+      console.log("âœ… Connected to socket:", socketRef.current.id);
 
       if (!userId) {
         localStorage.setItem("userId", socketRef.current.id);
@@ -43,7 +43,7 @@ const VideoCall = () => {
     });
 
     socketRef.current.on("user-joined", async (joinedUserId) => {
-      console.log("👤 User joined:", joinedUserId);
+      console.log("ðŸ‘¤ User joined:", joinedUserId);
       setRemoteUsers((prev) => [...new Set([...prev, joinedUserId])]);
 
       if (joinedUserId === socketRef.current.id) return;
@@ -62,7 +62,7 @@ const VideoCall = () => {
     });
 
     socketRef.current.on("signal", async (fromId, message) => {
-      console.log("📡 Signal from:", fromId, message);
+      console.log("ðŸ“¡ Signal from:", fromId, message);
 
       let peerConnection = peerConnectionsRef.current[fromId];
 
@@ -72,7 +72,7 @@ const VideoCall = () => {
       }
 
       if (message.type === "offer") {
-        console.log("📨 Received offer");
+        console.log("ðŸ“¨ Received offer");
         await peerConnection.setRemoteDescription(
           new RTCSessionDescription(message)
         );
@@ -85,23 +85,23 @@ const VideoCall = () => {
           toId: fromId,
         });
       } else if (message.type === "answer") {
-        console.log("✅ Received answer");
+        console.log("âœ… Received answer");
         await peerConnection.setRemoteDescription(
           new RTCSessionDescription(message)
         );
       } else if (message.candidate) {
         try {
           const candidate = new RTCIceCandidate(message.candidate);
-          console.log("❄️ Adding ICE Candidate:", candidate);
+          console.log("â„ï¸ Adding ICE Candidate:", candidate);
           await peerConnection.addIceCandidate(candidate);
         } catch (err) {
-          console.error("🚫 ICE Candidate error:", err);
+          console.error("ðŸš« ICE Candidate error:", err);
         }
       }
     });
 
     socketRef.current.on("user-left", (id) => {
-      console.log("👋 User left:", id);
+      console.log("ðŸ‘‹ User left:", id);
       if (peerConnectionsRef.current[id]) {
         peerConnectionsRef.current[id].close();
         delete peerConnectionsRef.current[id];
@@ -125,20 +125,20 @@ const VideoCall = () => {
         audio: true,
       });
       localVideoRef.current.srcObject = stream;
-      console.log("🎥 Local media stream setup successful");
+      console.log("ðŸŽ¥ Local media stream setup successful");
 
       stream.getVideoTracks().forEach((track) => {
-        console.log("📡 Local video track:", track.label, track.readyState);
+        console.log("ðŸ“¡ Local video track:", track.label, track.readyState);
       });
 
       setConnected(true);
     } catch (err) {
-      console.error("❌ Media setup failed:", err);
+      console.error("âŒ Media setup failed:", err);
     }
   };
 
   const createPeerConnection = (remoteUserId) => {
-    console.log("🔗 Creating peer connection for:", remoteUserId);
+    console.log("ðŸ”— Creating peer connection for:", remoteUserId);
     const pc = new RTCPeerConnection(iceConfig);
 
     const localStream = localVideoRef.current?.srcObject;
@@ -159,7 +159,7 @@ const VideoCall = () => {
     };
 
     pc.ontrack = (event) => {
-      console.log("🎬 ontrack fired from", remoteUserId, event.streams[0]);
+      console.log("ðŸŽ¬ ontrack fired from", remoteUserId, event.streams[0]);
 
       if (!remoteVideosRef.current[remoteUserId]) {
         const video = document.createElement("video");
@@ -172,7 +172,7 @@ const VideoCall = () => {
         video.style.display = "block";
 
         video.onloadeddata = () => {
-          console.log(`✅ Remote video (${remoteUserId}) is playing`);
+          console.log(`âœ… Remote video (${remoteUserId}) is playing`);
         };
 
         remoteVideosRef.current[remoteUserId] = video;
@@ -186,8 +186,8 @@ const VideoCall = () => {
         remoteVideo.srcObject = event.streams[0];
         remoteVideo
           .play()
-          .catch((e) => console.error("⚠️ Auto-play failed:", e));
-        console.log("✅ Remote stream attached:", event.streams[0]);
+          .catch((e) => console.error("âš ï¸ Auto-play failed:", e));
+        console.log("âœ… Remote stream attached:", event.streams[0]);
       }
     };
 
@@ -302,3 +302,4 @@ const VideoCall = () => {
 };
 
 export default VideoCall;
+

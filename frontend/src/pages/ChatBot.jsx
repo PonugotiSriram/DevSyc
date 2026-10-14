@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+﻿import { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import { MessageCircle, X, Send, Bot } from "lucide-react";
 
@@ -26,7 +26,7 @@ export default function ChatBot() {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/prompt",
+        "https://devsync-backend-tbv2.onrender.com/prompt",
         {
           prompt: input,
         }
@@ -122,3 +122,4 @@ export default function ChatBot() {
     </div>
   );
 }
+
