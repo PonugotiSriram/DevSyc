@@ -5,16 +5,17 @@ import { cn } from "../lib/utils";
 
 // MUI Icons
 import HomeIcon from "@mui/icons-material/Home";
+import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import CodeIcon from "@mui/icons-material/Code";
 import QuizIcon from "@mui/icons-material/Quiz";
 import ForumIcon from "@mui/icons-material/Forum";
 import VideoChatRoundedIcon from "@mui/icons-material/VideoChatRounded";
+import DashboardCustomizeRoundedIcon from "@mui/icons-material/DashboardCustomizeRounded";
+import BuildRoundedIcon from "@mui/icons-material/BuildRounded";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import PersonIcon from "@mui/icons-material/Person";
-import ArticleIcon from "@mui/icons-material/Article";
-import EditRoundedIcon from "@mui/icons-material/EditRounded";
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -36,12 +37,13 @@ const Sidebar = () => {
 
   const navItems = [
     { name: "Home", link: "/dashboard", icon: <HomeIcon /> },
-    { name: "Resources", link: "/docs", icon: <ArticleIcon /> },
     { name: "Board", link: "/editor", icon: <EditRoundedIcon /> },
     { name: "Collab", link: "/collab", icon: <CodeIcon /> },
     { name: "Quiz", link: "/test", icon: <QuizIcon /> },
     { name: "Chat Room", link: "/forums", icon: <ForumIcon /> },
     { name: "Video Call", link: "/videoCall", icon: <VideoChatRoundedIcon /> },
+    { name: "Test Dashboard", link: "/testDashboard", icon: <DashboardCustomizeRoundedIcon /> },
+    { name: "Test Setup", link: "/testSetup", icon: <BuildRoundedIcon /> },
   ];
 
   const hideNavbarPaths = ["/", "/signup", "/login"];

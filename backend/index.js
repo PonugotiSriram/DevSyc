@@ -1,4 +1,4 @@
-import express, { json } from "express";
+﻿import express, { json } from "express";
 import { connect } from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -13,6 +13,7 @@ import { generateQuiz } from "./ai-quiz.js";
 import { jsonrepair } from "jsonrepair";
 import chatHistory from "./models/chatRoom.js";
 import blogRouter from "./routes/blogRoutes.js";
+import executeRoutes from "./routes/execute.js";
 
 dotenv.config();
 
@@ -32,17 +33,19 @@ const connectDB = async () => {
   try {
     const conn = await connect(process.env.MONGO_URI);
     console.log(`Database connected, ${conn.connection.id}`);
-  } catch {
-    console.error("Error connecting to database");
+  } catch (error) {
+    console.error("MongoDB Atlas Error:", error.message || error);
   }
 };
 let timeOnline = {};
 let connections = {};
 let roomHistory = {};
 //Routes
+//Routes
+app.use("/api/execute", executeRoutes);
+app.use("/blog", blogRouter);
 app.use("/", authRoutes);
 app.use("/", roomRoutes);
-app.use("/blog", blogRouter);
 
 io.on("connection", (socket) => {
   console.log("Client connected with id:", socket.id);
@@ -97,7 +100,7 @@ io.on("connection", (socket) => {
     try {
       console.log(`Sending room history for ${roomCode} to ${userId}`);
       if (roomHistory[roomCode]) {
-        socket.emit("room-history", roomHistory[roomCode]); // ✅ Renamed
+        socket.emit("room-history", roomHistory[roomCode]); // âœ… Renamed
       } else {
         socket.emit("room-history", []);
       }
@@ -182,7 +185,7 @@ io.on("connection", (socket) => {
         delete users[client];
         socket.leave(code);
 
-        // --- 🔥 Track leave in room history ---
+        // --- ðŸ”¥ Track leave in room history ---
         const now = new Date().toISOString();
         if (!roomHistory[code]) roomHistory[code] = [];
         roomHistory[code].push({
@@ -238,64 +241,73 @@ io.on("connection", (socket) => {
   });
 });
 
-// Import the Quiz model
+// Fallback quiz used when AI generation fails
+const FALLBACK_QUIZ = [
+  {
+    question: "What does HTML stand for?",
+    options: ["HyperText Markup Language", "HighText Machine Language", "HyperText and links Markup Language", "None of the above"],
+    correctAnswer: 0,
+  },
+  {
+    question: "Which of the following is a JavaScript framework?",
+    options: ["Django", "Laravel", "React", "Flask"],
+    correctAnswer: 2,
+  },
+  {
+    question: "What is the time complexity of binary search?",
+    options: ["O(n)", "O(nÂ²)", "O(log n)", "O(1)"],
+    correctAnswer: 2,
+  },
+  {
+    question: "Which HTTP method is used to submit form data?",
+    options: ["GET", "DELETE", "PUT", "POST"],
+    correctAnswer: 3,
+  },
+  {
+    question: "What does CSS stand for?",
+    options: ["Creative Style Sheets", "Cascading Style Sheets", "Computer Style Sheets", "Colorful Style Sheets"],
+    correctAnswer: 1,
+  },
+];
+
 app.post("/api/init-quiz", async (req, res) => {
-  try {
     const { subjects, difficulty, roomCode } = req.body;
 
-    // Get LLM response
-    const response = await generateQuiz(subjects, difficulty);
-    const val = response.content;
-
-    // Extract code block from markdown-style JSON
-    const matches = [...val.matchAll(/```json\n([\s\S]*?)\n```/g)];
-
-    if (!matches.length) {
-      console.error("❌ No JSON code block found in response.");
-      return res.status(500).json({ error: "No JSON found in AI response." });
+    if (!roomCode) {
+      return res.status(400).json({ success: false, error: "roomCode is required." });
     }
 
-    const jsonString = matches[0][1].trim();
+    let formattedData;
 
-    let rawQuizData;
     try {
-      const repaired = jsonrepair(jsonString);
-      rawQuizData = JSON.parse(repaired);
-    } catch (err) {
-      console.error("❌ Failed to parse or repair JSON:", err.message);
-      return res.status(500).json({ error: "Invalid JSON format from AI." });
-    }
-    console.log(rawQuizData);
+      const response = await generateQuiz(subjects, difficulty);
+      const rawQuizData = Array.isArray(response) ? response : (response.questions || []);
 
-    const newData = rawQuizData.map((q) => {
-      const correctIdx = q.options.indexOf(q.correctOption);
-      return {
+      if (!rawQuizData.length) throw new Error("No questions returned from AI generator.");
+
+      formattedData = rawQuizData.map((q) => ({
         question: q.question,
         options: q.options,
-        correctAnswer: correctIdx,
-      };
-    });
-    const data = Quiz.findOne({ roomCode });
-    if (data !== null) {
-      await Quiz.updateOne(
-        { roomCode },
-        { $set: { quizData: newData } },
-        { upsert: true }
-      );
-    } else {
-      const addQuiz = new Quiz({
-        roomCode,
-        quizData: newData,
-      });
-      await addQuiz.save();
-    }
-    res.json({
-      success: true,
-      message: "Quiz initialized and saved successfully!",
-    });
-  } catch (error) {
-    console.error("❌ Error generating quiz:", error);
-    res.status(500).json({ error: "Failed to generate quiz." });
+        correctAnswer: typeof q.correctOption === "number" ? q.correctOption : (q.correctAnswer ?? q.options.indexOf(q.correctOption)),
+        explanation: q.explanation || ""
+      }));
+
+      console.log("AI quiz generated successfully:", formattedData.length, "questions.");
+    } catch (aiError) {
+      console.warn("AI generation failed, using fallback quiz:", aiError.message);
+      formattedData = FALLBACK_QUIZ;
+  }
+
+  try {
+    await Quiz.findOneAndUpdate(
+      { roomCode },
+      { roomCode, quizData: formattedData },
+      { upsert: true, new: true }
+    );
+    return res.json({ success: true, message: "Quiz initialized successfully!" });
+  } catch (dbError) {
+    console.error("âŒ DB error saving quiz:", dbError);
+    return res.status(500).json({ success: false, error: "Failed to save quiz to database." });
   }
 });
 
@@ -344,16 +356,20 @@ app.post("/api/save-quiz", async (req, res) => {
 // API to Fetch Quiz
 app.post("/api/get-quiz", async (req, res) => {
   const { roomCode } = req.body;
+
+  if (!roomCode) {
+    return res.status(400).json({ success: false, message: "roomCode is required." });
+  }
+
   try {
-    const quiz = await Quiz.findOne({ roomCode: roomCode });
+    const quiz = await Quiz.findOne({ roomCode });
     if (!quiz) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Quiz not found" });
+      return res.status(404).json({ success: false, message: "No quiz found for this room." });
     }
-    res.json({ success: true, quizData: quiz.quizData });
+    return res.json({ success: true, quizData: quiz.quizData });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Error fetching quiz" });
+    console.error("Quiz fetch error:", error);
+    return res.status(500).json({ success: false, message: error.message });
   }
 });
 
@@ -423,3 +439,4 @@ server.listen(5000, (err) => {
   connectDB();
   console.log("Server is listening on port 5000!");
 });
+

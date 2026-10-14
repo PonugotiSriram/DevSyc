@@ -26,7 +26,7 @@ export default function ChatBot() {
 
     try {
       const response = await axios.post(
-        "https://codingassistant.onrender.com/prompt",
+        "http://localhost:5000/prompt",
         {
           prompt: input,
         }

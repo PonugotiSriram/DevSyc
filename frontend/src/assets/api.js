@@ -1,24 +1,27 @@
-// api.js
 import axios from "axios";
 
-const API = axios.create({
-  baseURL: "https://emkc.org/api/v2/piston"
-});
+export const executeCode = async (language, sourceCode) => {
+  const lang = (language || "java").toLowerCase().trim();
+  const code = sourceCode || "";
 
-export const executeCode = async (sourceCode) => {
   try {
-    const response = await API.post("/execute", {
-      language: "java",
-      version: "15.0.2",
-      files: [
-        {
-          content: sourceCode,
-        },
-      ],
+    const response = await axios.post("http://localhost:5000/api/execute", {
+      language: lang,
+      sourceCode: code,
+      files: [{ content: code }],
     });
+
     return response.data;
   } catch (error) {
-    console.error("Error executing code:", error);
-    throw error;
+    const out =
+      error.response?.data?.run?.output ||
+      error.response?.data?.message ||
+      error.message;
+    return {
+      run: {
+        output: "Execution failed: " + out,
+        code: 1,
+      },
+    };
   }
 };

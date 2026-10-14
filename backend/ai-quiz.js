@@ -1,47 +1,51 @@
-import { PromptTemplate } from "@langchain/core/prompts";
-import { ChatMistralAI } from "@langchain/mistralai";
-import { ChatGroq } from "@langchain/groq";
+﻿import axios from "axios";
 import * as dotenv from "dotenv";
+import { jsonrepair } from "jsonrepair";
 dotenv.config();
-const model = new ChatGroq({
-  model: "mistral-saba-24b",
-  apiKey: process.env.ApiKey,
-});
-const quizgen = new PromptTemplate({
-  template: `
-You are a quiz generator AI. Generate 10 **multiple choice** questions based on the following input:
 
-- Subject: {subjects}
-- Difficulty: {difficulty}
-
-Each question must be a JSON object with the following fields:
-- "question": The question text
-- "options": An array of 4 unique answer options
-- "correctOption": The **exact string value** that is the correct answer (must match one of the options)
-
-Return ONLY a JSON array wrapped in a Markdown code block like this:
-Question:
-Options:
-CorrectOption:
-
-
-Do not include any explanation or extra text — just return the JSON code block.`,
-  inputVariables: ["subjects", "difficulty"],
-});
+const API_KEY = process.env.ApiKey || process.env.GROQ_API_KEY || "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";
 
 export async function generateQuiz(subjects, difficulty) {
-  try {
-    const formattedPrompt = await quizgen.format({
-      subjects,
-      difficulty,
-    });
+  const prompt = `You are a technical interviewer. Generate 5 multiple-choice questions for:
+Subject: ${subjects || "Java OOP"}
+Difficulty: ${difficulty || "Medium"}
 
-    const jsonPrompt = `${formattedPrompt}
-    Give me an array of questions, wrong options and correct option for each test. 
-    Make sure it is a JSON format and it is easy to parse and display.`;
-    const response = await model.invoke(jsonPrompt);
-    return response;
-  } catch (error) {
-    console.error("Error generating study plan:", error);
+Return ONLY a pure JSON array of 5 objects with no extra text or markdown:
+[
+  {
+    "question": "question text",
+    "options": ["opt1", "opt2", "opt3", "opt4"],
+    "correctOption": 0,
+    "explanation": "why this is correct"
+  }
+]`;
+
+  try {
+    const res = await axios.post(
+      "https://api.groq.com/openai/v1/chat/completions",
+      {
+        model: "qwen/qwen3.8-27b",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.3,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        timeout: 15000,
+      }
+    );
+
+    let raw = res.data.choices[0]?.message?.content || "";
+    raw = raw.replace(/```(?:json)?/gi, "").replace(/```/g, "").trim();
+    const parsed = JSON.parse(jsonrepair(raw));
+    const questions = Array.isArray(parsed) ? parsed : (parsed.questions || []);
+
+    if (!questions.length) throw new Error("Empty questions array returned");
+    return questions;
+  } catch (err) {
+    console.error("Direct Groq Call Failed:", err.response?.data || err.message);
+    throw err;
   }
 }

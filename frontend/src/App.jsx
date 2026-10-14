@@ -1,4 +1,4 @@
-import {
+﻿import {
   BrowserRouter as Router,
   Routes,
   Route,
@@ -15,6 +15,7 @@ import Auth from "./pages/Auth";
 import NavBar from "./pages/NavBar";
 import Sidebar from "./pages/SideBar";
 import ChatBot from "./pages/ChatBot";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 // import Room from "./pages/Room";
 // import QuizCreate from "./pages/QuizCreate";
@@ -22,6 +23,9 @@ import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import VideoCall from "./pages/VideoCall";
 import Dashboard from "./pages/Dashboard";
+import Board from "./pages/Board";
+import TestDashboard from "./pages/TestDashboard";
+import TestSetup from "./pages/TestSetup";
 import TrailingCursor  from "./components/TrailingCursor";
 function App() {
   const [isLogin, setIsLogin] = useState(
@@ -91,6 +95,40 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/editor"
+              element={
+                <ProtectedRoute>
+                  <Board />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/testDashboard"
+              element={
+                <ProtectedRoute>
+                  <TestDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/testSetup"
+              element={
+                <ProtectedRoute>
+                  <TestSetup />
+                </ProtectedRoute>
+              }
+            />
+            {/* /quiz is an alias for /test so both paths reach the Quiz Lobby */}
+            <Route
+              path="/quiz"
+              element={
+                <ProtectedRoute>
+                  <Test />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <ChatBot />
@@ -101,3 +139,4 @@ function App() {
 }
 
 export default App;
+

@@ -19,7 +19,7 @@ import axios from "axios";
 
 // --- Socket.IO Connection ---
 // Ensure the server URL is correct
-const socket = io.connect("https://codingassistant.onrender.com");
+const socket = io.connect("http://localhost:5000");
 
 // --- Interactive Pomodoro Timer Component ---
 const PomodoroCircle = ({ time, duration, isRunning, onToggle }) => {
@@ -181,7 +181,7 @@ const JoinCreate = () => {
       return toast.warn("Please enter a room code and email.");
     try {
       const res = await axios.post(
-        "https://codingassistant.onrender.com/send-code",
+        "http://localhost:5000/send-code",
         { roomCode, email }
       );
       toast.success(res.data.message || "Email sent successfully!");

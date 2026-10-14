@@ -28,7 +28,7 @@ const runCode = async () => {
   setOutput("Running..."); // Show loading state
 
   try {
-    const { run: result } = await executeCode(sourceCode);
+    const { run: result } = await executeCode("java", sourceCode);
     setOutput(result?.output || "No output returned.");
   } catch (error) {
     console.error("Code execution error:", error);
@@ -36,7 +36,7 @@ const runCode = async () => {
   }
 };
 
-// const socket = io.connect("https://codingassistant.onrender.com");
+// const socket = io.connect("http://localhost:5000");
 const socket = io.connect("http://localhost:5000");
 // --- Main Component ---
 const CodeCollab = () => {
@@ -146,7 +146,7 @@ const CodeCollab = () => {
     setIsLoading(true);
     setOutput("Running code...");
     try {
-      const { run: result } = await executeCode(sourceCode);
+      const { run: result } = await executeCode(language, sourceCode);
       setOutput(result?.output || "No output returned.");
     } catch (error) {
       console.error("Code execution error:", error);

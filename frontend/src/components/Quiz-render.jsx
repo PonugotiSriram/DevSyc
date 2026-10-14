@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { RoomEntry } from "../components/Room-entry";
 import { QuizUpload } from "../components/Quiz-upload";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 
 const UploadIcon = () => (
@@ -77,7 +77,12 @@ const ExitIcon = () => (
   </svg>
 );
 
-export function QuizRenderer({ roomCode, userId }) {
+export function QuizRenderer({ roomCode: roomCodeProp, userId }) {
+  const location = useLocation();
+  const roomCode =
+    roomCodeProp ||
+    location.state?.roomCode ||
+    localStorage.getItem("roomCode");
   const [quizData, setQuizData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -92,7 +97,7 @@ export function QuizRenderer({ roomCode, userId }) {
     async function fetchQuiz() {
       try {
         const response = await axios.post(
-          "https://codingassistant.onrender.com/api/get-quiz",
+          "http://localhost:5000/api/get-quiz",
           { roomCode }
         );
         setQuizData(response.data.quizData);
@@ -156,7 +161,7 @@ export function QuizRenderer({ roomCode, userId }) {
 
   const saveResults = async () => {
     try {
-      await axios.post(`https://codingassistant.onrender.com/results`, {
+      await axios.post(`http://localhost:5000/results`, {
         userId,
         roomCode,
         score,
