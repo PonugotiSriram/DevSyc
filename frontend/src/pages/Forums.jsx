@@ -105,11 +105,7 @@ const Forums = () => {
   const sendMessage = (e) => {
     e.preventDefault();
     if (message.trim() !== "") {
-      socket.emit("text-message", {
-        message,
-        client: user,
-        code: roomCode,
-      });
+      sendMessage(message);
       setMessage("");
     }
   };

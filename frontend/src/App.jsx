@@ -17,6 +17,7 @@ import Sidebar from "./pages/SideBar";
 import ChatBot from "./pages/ChatBot";
 import Profile from "./pages/Profile";
 import { CallProvider } from "./context/CallContext";
+import { ChatProvider } from "./context/ChatContext";
 import FloatingCall from "./components/FloatingCall";
 import NotFound from "./pages/NotFound";
 // import Room from "./pages/Room";
@@ -56,6 +57,7 @@ function App() {
   return (
     <Router>
       <CallProvider>
+        <ChatProvider>
       <ToastContainer position="top-right" autoClose={2000} />
       <TrailingCursor />
       <div className="relative flex min-h-screen bg-gray-100 dark:bg-gray-900">
@@ -138,6 +140,7 @@ function App() {
         </main>
       </div>
       <FloatingCall />
+      </ChatProvider>
       </CallProvider>
     </Router>
   );
