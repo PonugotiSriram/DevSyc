@@ -92,6 +92,19 @@ io.on("connection", (socket) => {
       io.to(roomCode).emit("room-users", rooms[roomCode].length);
 
       console.log(`User ${userId} joined room ${roomCode}`);
+      try {
+        const foundChat = await chatHistory.findOne({ roomId: roomCode });
+        if (foundChat && foundChat.chats) {
+          const historyPayload = foundChat.chats.map((c) => ({
+            message: c.content,
+            client: c.sender,
+            timestamp: c.time,
+          }));
+          socket.emit("chat-history", historyPayload);
+        }
+      } catch (err) {
+        console.error("Error fetching chat history from DB:", err);
+      }
     } catch (error) {
       console.error("Error in join-room:", error);
     }
@@ -144,27 +157,28 @@ io.on("connection", (socket) => {
   try {
     console.log("Incoming message:", message, "from", client, "to room:", code);
 
-    io.to(code).emit("text-message", { message, client });
+    const msgPayload = {
+      message,
+      client,
+      timestamp: new Date().toISOString(),
+    };
 
-    const foundRoom = await chatHistory.findOne({ roomId: code });
+    io.to(code).emit("text-message", msgPayload);
 
+    let foundRoom = await chatHistory.findOne({ roomId: code });
     if (!foundRoom) {
-      console.error("No room found with roomId:", code);
-      return;
+      foundRoom = new chatHistory({ roomId: code, users: [client], chats: [] });
     }
 
     foundRoom.chats.push({
       sender: client,
       content: message,
-      time: Date.now(),
-      status: {
-        delivered: true
-      }
+      time: new Date(),
+      status: { delivered: true },
     });
 
     await foundRoom.save();
-    console.log("Message saved to DB");
-
+    console.log("Message saved to DB for room:", code);
   } catch (error) {
     console.error("Error in text-message:", error);
   }
