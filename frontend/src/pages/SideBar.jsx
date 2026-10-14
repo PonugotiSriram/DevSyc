@@ -33,25 +33,35 @@ const Sidebar = () => {
 
   const toggleSidebar = () => setIsOpen(!isOpen);
 
+  // Keep socket in the active room whenever navigating
   useEffect(() => {
-    const roomCode = localStorage.getItem("roomCode");
-    const currentUser = localStorage.getItem("userId") || localStorage.getItem("userName");
+    const syncRoom = () => {
+      const roomCode = localStorage.getItem("roomCode");
+      const currentUser = localStorage.getItem("userId") || localStorage.getItem("userName") || "User";
+      if (roomCode) {
+        socket.emit("join-room", { roomCode, userId: currentUser });
+      }
+    };
 
-    if (roomCode) {
-      socket.emit("join-room", { roomCode, userId: currentUser });
-    }
+    syncRoom();
+    socket.on("connect", syncRoom);
 
     const handleIncoming = (data) => {
-      if (roomCode && data) {
+      const currentRoom = localStorage.getItem("roomCode");
+      const currentUser = localStorage.getItem("userId") || localStorage.getItem("userName");
+
+      // Save to background storage so Forums has it when opened
+      if (currentRoom && data) {
         try {
-          const current = JSON.parse(localStorage.getItem(`chat_${roomCode}`) || "[]");
+          const current = JSON.parse(localStorage.getItem(`chat_${currentRoom}`) || "[]");
           current.push({ ...data, timestamp: data.timestamp || new Date().toISOString() });
-          localStorage.setItem(`chat_${roomCode}`, JSON.stringify(current));
+          localStorage.setItem(`chat_${currentRoom}`, JSON.stringify(current));
         } catch (e) {
-          console.error("Failed to update background chat storage", e);
+          console.error("Storage error:", e);
         }
       }
 
+      // If user is NOT on the chat page and message is from someone else -> show badge
       if (window.location.pathname !== "/forums" && data?.client !== currentUser) {
         setUnreadChat((prev) => {
           const next = prev + 1;
@@ -63,15 +73,20 @@ const Sidebar = () => {
 
     socket.on("text-message", handleIncoming);
 
-    const handleReadEvent = () => setUnreadChat(0);
+    const handleReadEvent = () => {
+      setUnreadChat(0);
+      localStorage.setItem("chat_unread", "0");
+    };
     window.addEventListener("chat-read", handleReadEvent);
 
     return () => {
       socket.off("text-message", handleIncoming);
+      socket.off("connect", syncRoom);
       window.removeEventListener("chat-read", handleReadEvent);
     };
-  }, []);
+  }, [location.pathname]);
 
+  // Clear unread count when viewing /forums
   useEffect(() => {
     if (location.pathname === "/forums") {
       setUnreadChat(0);
@@ -120,6 +135,7 @@ const Sidebar = () => {
         }}
         className="fixed top-0 left-0 h-screen bg-[#1e1e1e] text-white z-40 flex flex-col shadow-lg select-none"
       >
+        {/* Toggle */}
         <div className="flex justify-center items-center p-2 border-b border-gray-800">
           <button
             onClick={toggleSidebar}
@@ -129,6 +145,7 @@ const Sidebar = () => {
           </button>
         </div>
 
+        {/* Navigation Items */}
         <div className="flex-1 overflow-y-auto py-4">
           <ul className="space-y-6">
             {navItems.map((item, index) => {
@@ -151,10 +168,14 @@ const Sidebar = () => {
                     <div className="relative flex items-center justify-center">
                       <span className="text-xl">{item.icon}</span>
 
+                      {/* Visible Red Badge on Collapsed Sidebar */}
                       {!isOpen && item.badge && (
-                        <span className="absolute -top-1 -right-1.5 w-3 h-3 bg-red-500 rounded-full ring-2 ring-[#1e1e1e]" />
+                        <span className="absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 bg-red-500 text-[10px] font-extrabold text-white rounded-full flex items-center justify-center ring-2 ring-[#1e1e1e] shadow-md z-10">
+                          {item.badge}
+                        </span>
                       )}
 
+                      {/* Video Call Indicator */}
                       {!isOpen && item.indicator && (
                         <span className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full ${item.indicator} ring-2 ring-[#1e1e1e]`} />
                       )}
@@ -164,8 +185,9 @@ const Sidebar = () => {
                       <div className="flex items-center justify-between w-full ml-3">
                         <span className="text-sm truncate">{item.name}</span>
 
+                        {/* Red Badge with Count on Expanded Sidebar */}
                         {item.badge && (
-                          <span className="px-1.5 py-0.2 bg-red-500 text-white text-xs font-bold rounded-full shadow">
+                          <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full shadow">
                             {item.badge}
                           </span>
                         )}
@@ -185,6 +207,7 @@ const Sidebar = () => {
           </ul>
         </div>
 
+        {/* Profile & Logout */}
         <div className="p-4 border-t border-gray-800 flex flex-col gap-3">
           <button
             onClick={() => navigate("/profile")}
@@ -216,6 +239,7 @@ const Sidebar = () => {
         </div>
       </motion.div>
 
+      {/* Main Content Layout */}
       <div
         className="min-h-screen transition-all duration-300"
         style={{ paddingLeft: isOpen ? "200px" : "60px" }}
