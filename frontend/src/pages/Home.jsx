@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import io from "socket.io-client";
 import { Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +10,7 @@ import CoolBackground from "../pages/CoolBackground.jsx";
 import FakeTerminal from "../pages/FakeTerminal.jsx";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import MeetingRoomRoundedIcon from "@mui/icons-material/MeetingRoomRounded";
+import AccountCircleRoundedIcon from "@mui/icons-material/AccountCircleRounded";
 import FeaturePanels from "./FeaturesPanel.jsx";
 import JoinCreate from "./join-create.jsx";
 import Footer from "../pages/Footer.jsx";
@@ -93,71 +94,95 @@ const Home = () => {
                 </p>
 
                 <div className="flex flex-col md:flex-row gap-4 items-center md:items-start md:justify-start justify-center">
-                  <Button
-                    onClick={goToDashboard}
-                    variant="contained"
-                    startIcon={<MeetingRoomRoundedIcon />}
-                    sx={{
-                      backgroundColor: "#7c3aed",
-                      "&:hover": { backgroundColor: "#6d28d9" },
-                      color: "white",
-                      fontWeight: "bold",
-                      paddingX: 3,
-                      paddingY: 1.5,
-                      fontSize: "1rem",
-                      borderRadius: "0.75rem",
-                    }}
-                  >
-                    Go to Dashboard
-                  </Button>
+                  {localStorage.getItem("isLogin") === "true" ? (
+                    <>
+                      <Button
+                        onClick={goToDashboard}
+                        variant="contained"
+                        startIcon={<MeetingRoomRoundedIcon />}
+                        sx={{
+                          backgroundColor: "#7c3aed",
+                          "&:hover": { backgroundColor: "#6d28d9" },
+                          color: "white",
+                          fontWeight: "bold",
+                          paddingX: 3,
+                          paddingY: 1.5,
+                          fontSize: "1rem",
+                          borderRadius: "0.75rem",
+                        }}
+                      >
+                        Go to Dashboard
+                      </Button>
 
-                  <Button
-                    onClick={goToLogin}
-                    variant="outlined"
-                    sx={{
-                      borderColor: "#10b981",
-                      color: "#10b981",
-                      "&:hover": {
-                        borderColor: "#059669",
-                        backgroundColor: "rgba(16, 185, 129, 0.1)",
-                      },
-                      fontWeight: "bold",
-                      paddingX: 3,
-                      paddingY: 1.5,
-                      fontSize: "1rem",
-                      borderRadius: "0.75rem",
-                    }}
-                  >
-                    Login
-                  </Button>
+                      <Button
+                        onClick={() => navigate("/profile")}
+                        variant="outlined"
+                        startIcon={<AccountCircleRoundedIcon />}
+                        sx={{
+                          borderColor: "#8b5cf6",
+                          color: "#8b5cf6",
+                          "&:hover": {
+                            borderColor: "#7c3aed",
+                            backgroundColor: "rgba(139, 92, 246, 0.1)",
+                          },
+                          fontWeight: "bold",
+                          paddingX: 3,
+                          paddingY: 1.5,
+                          fontSize: "1rem",
+                          borderRadius: "0.75rem",
+                        }}
+                      >
+                        My Profile
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        onClick={goToLogin}
+                        variant="contained"
+                        sx={{
+                          backgroundColor: "#10b981",
+                          "&:hover": { backgroundColor: "#059669" },
+                          color: "white",
+                          fontWeight: "bold",
+                          paddingX: 3,
+                          paddingY: 1.5,
+                          fontSize: "1rem",
+                          borderRadius: "0.75rem",
+                        }}
+                      >
+                        Login
+                      </Button>
 
-                  <Button
-                    onClick={goToSignup}
-                    variant="outlined"
-                    startIcon={<AddRoundedIcon />}
-                    sx={{
-                      borderColor: "#3b82f6",
-                      color: "#3b82f6",
-                      "&:hover": {
-                        borderColor: "#2563eb",
-                        backgroundColor: "rgba(59, 130, 246, 0.1)",
-                      },
-                      fontWeight: "bold",
-                      paddingX: 3,
-                      paddingY: 1.5,
-                      fontSize: "1rem",
-                      borderRadius: "0.75rem",
-                    }}
-                  >
-                    Sign Up
-                  </Button>
+                      <Button
+                        onClick={goToSignup}
+                        variant="outlined"
+                        startIcon={<AddRoundedIcon />}
+                        sx={{
+                          borderColor: "#3b82f6",
+                          color: "#3b82f6",
+                          "&:hover": {
+                            borderColor: "#2563eb",
+                            backgroundColor: "rgba(59, 130, 246, 0.1)",
+                          },
+                          fontWeight: "bold",
+                          paddingX: 3,
+                          paddingY: 1.5,
+                          fontSize: "1rem",
+                          borderRadius: "0.75rem",
+                        }}
+                      >
+                        Get Started
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
 
             {/* Scroll Prompt */}
             <div className="mt-12 animate-bounce text-gray-400 text-sm text-center">
-              ↓ Scroll down to explore features
+              â†“ Scroll down to explore features
             </div>
           </>
         )}
@@ -181,3 +206,4 @@ const Home = () => {
 };
 
 export default Home;
+
