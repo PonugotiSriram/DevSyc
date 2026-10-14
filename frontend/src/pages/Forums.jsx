@@ -102,8 +102,10 @@ const Forums = () => {
     }
   }, [chat]);
 
-  const sendMessage = (e) => {
-    e.preventDefault();
+  const handleSendMessage = (e) => {
+    if (e && typeof e.preventDefault === "function") {
+      e.preventDefault();
+    }
     if (message.trim() !== "") {
       sendMessage(message);
       setMessage("");
@@ -277,7 +279,7 @@ const Forums = () => {
 
       {/* Message Input */}
       <div className="bg-gradient-to-r from-gray-800 to-gray-900 border-t border-gray-700 p-4 shadow-lg">
-        <form onSubmit={sendMessage} className="flex items-center">
+        <form onSubmit={handleSendMessage} className="flex items-center">
           <input
             type="text"
             name="chat"
