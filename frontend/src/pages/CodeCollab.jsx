@@ -1,3 +1,4 @@
+import ActiveMembers from "../components/ActiveMembers";
 ﻿import React, { useRef, useState, useEffect, useCallback } from "react";
 import { debounce } from "lodash";
 import { Editor } from "@monaco-editor/react";
@@ -40,6 +41,30 @@ const runCode = async () => {
 const socket = io.connect("https://devsync-backend-tbv2.onrender.com/");
 // --- Main Component ---
 const CodeCollab = () => {
+  const [roomMembers, setRoomMembers] = useState([]);
+  const currentUserName = localStorage.getItem("userName") || (localStorage.getItem("email") || "user").split("@")[0];
+
+  useEffect(() => {
+    if (roomCode && socket) {
+      socket.emit("join-room", { roomCode, userId: currentUserName, userName: currentUserName });
+      
+      const handleMembers = (list) => {
+        if (Array.isArray(list) && list.length > 0) {
+          setRoomMembers(list);
+        } else {
+          setRoomMembers([currentUserName]);
+        }
+      };
+
+      socket.on("active-room-members", handleMembers);
+      setRoomMembers([currentUserName]);
+
+      return () => {
+        socket.off("active-room-members", handleMembers);
+      };
+    }
+  }, [roomCode, currentUserName]);
+
   const nav = useNavigate();
   const editorRef = useRef(null);
   const [value, setValue] = useState("");
